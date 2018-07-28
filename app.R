@@ -38,6 +38,8 @@ server <- function(input, output) {
       ggplot() +
       geom_line(aes(date, last_month_mean), color = "green") +
       geom_line(aes(date, last_year_mean), color = "blue") +
+      scale_x_date(date_breaks = "10 days", date_labels =  "%d %b", 
+                   limits = c(today() - months(3), NA)) +
       theme_bw() +
       labs(title = "Monthly average per year and month",
            y = "Average")
