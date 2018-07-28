@@ -2,7 +2,7 @@ library(tidyverse)
 library(googlesheets)
 library(lubridate)
 library(zoo)
-library(TTR)
+library(plotly)
 
 #shiny_token <- gs_auth() # authenticate w/ your desired Google identity here
 #saveRDS(shiny_token, "shiny_app_token.rds")
@@ -16,21 +16,23 @@ sheet_data <- gs_read(ss) %>%
   mutate(date = dmy(date),
          exersice = 1)
 
-year_dates <- tibble(
-  date = today() - days(1:365)
-)
+start_date = min(sheet_data$date)
+n_days <- abs(today() %--% (start_date - years(1)) / days(1))
 
-combined <- year_dates %>%
+plot <- tibble(
+  date = today() - days(1:n_days)
+) %>%
   merge(sheet_data, by = "date", all.x = T) %>%
   mutate(
     exersice = if_else(is.na(exersice), 0, exersice),
-    last_30_calc = c(rep(0, 29), rollmean(exersice, 30)),
-    last_7_calc = c(rep(0, 6), rollmean(exersice, 7)),
-    last_365_calc = mean(exersice)
-  )
-
-ggplot(combined) +
-  geom_line(aes(date, last_7_calc * 30), color = "red") +
-  geom_line(aes(date, last_30_calc * 30), color = "green") +
-  geom_line(aes(date, last_365_calc * 30), color = "blue")
+    last_month_mean = rollmean(exersice, 30, fill = NA, align = "right") * 30,
+    last_year_mean = rollmean(exersice, 365, fill = NA, align = "right") * 30
+  ) %>%
+  filter(date >= start_date) %>%
+  ggplot() +
+  geom_line(aes(date, last_month_mean), color = "green") +
+  geom_line(aes(date, last_year_mean), color = "blue") +
+  labs(title = "Monthly average per year and month",
+       y = "Average")
   
+ggplotly(plot)
