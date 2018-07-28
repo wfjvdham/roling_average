@@ -19,14 +19,14 @@ n_days <- abs(today() %--% (start_date - years(1)) / days(1))
 
 ui <- fluidPage(
   titlePanel("Fitness Progress"),
-  plotlyOutput("plot")
+  plotOutput("plot")
 )
 
 server <- function(input, output) {
   
-  output$plot <- renderPlotly({
+  output$plot <- renderPlot({
     tibble(
-      date = today() - days(1:n_days)
+      date = today() - days(0:n_days)
     ) %>%
       merge(sheet_data, by = "date", all.x = T) %>%
       mutate(
@@ -36,10 +36,12 @@ server <- function(input, output) {
       ) %>%
       filter(date >= start_date) %>%
       ggplot() +
-      geom_line(aes(date, last_month_mean), color = "green") +
-      geom_line(aes(date, last_year_mean), color = "blue") +
+      geom_step(aes(date, last_month_mean), color = "green") +
+      geom_step(aes(date, last_year_mean), color = "blue") +
       scale_x_date(date_breaks = "10 days", date_labels =  "%d %b", 
-                   limits = c(today() - months(3), NA)) +
+                   limits = c(today() - months(4), NA)) +
+      scale_y_continuous(breaks = seq(0, 20, 1), minor_breaks = seq(0, 20, 1),
+                         position = "right") + 
       theme_bw() +
       labs(title = "Monthly average per year and month",
            y = "Average")
