@@ -14,9 +14,6 @@ sheet_data <- gs_read(ss) %>%
   mutate(date = dmy(date),
          exersice = 1)
 
-start_date = min(sheet_data$date)
-n_days <- abs(today() %--% (start_date - years(1)) / days(1))
-
 ui <- fluidPage(
   titlePanel("Fitness Progress"),
   plotOutput("plot")
@@ -26,7 +23,7 @@ server <- function(input, output) {
   
   output$plot <- renderPlot({
     tibble(
-      date = today() - days(0:n_days)
+      date = seq(min(sheet_data$date) - years(1), today(), by = "1 day")
     ) %>%
       merge(sheet_data, by = "date", all.x = T) %>%
       mutate(
