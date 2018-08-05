@@ -11,8 +11,7 @@ ss <- gs_key(sheet_key)
 
 sheet_data <- gs_read(ss) %>%
   filter(!is.na(last_30days)) %>%
-  mutate(date = dmy(date),
-         exersice = 1)
+  mutate(date = dmy(date))
 
 ui <- fluidPage(
   titlePanel("Fitness Progress"),
@@ -27,7 +26,7 @@ server <- function(input, output) {
     ) %>%
       merge(sheet_data, by = "date", all.x = T) %>%
       mutate(
-        exersice = if_else(is.na(exersice), 0, exersice),
+        exersice = as.numeric(!is.na(last_30days)),
         last_month_mean = rollmean(exersice, 30, fill = NA, align = "right") * 30,
         last_year_mean = rollmean(exersice, 365, fill = NA, align = "right") * 30
       ) %>%
